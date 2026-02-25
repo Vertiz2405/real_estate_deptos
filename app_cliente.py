@@ -167,7 +167,7 @@ for i, tab in enumerate(tabs):
             else:
                 st.info("Sin fotos (o links no válidos).")
 
-            p1, p2, p3, p4 = st.columns([1.6, 1, 1.5, 1])
+            p1, p2, p3, p4 = st.columns([1.8, 1, 1.5, 1])
             p1.metric("Precio", f"${int(df_mut.loc[i, 'precio_mxn']):,}" if pd.notna(df_mut.loc[i, "precio_mxn"]) else "-")
             p2.metric("m²", f"{df_mut.loc[i, 'm2_construccion']:.0f}" if pd.notna(df_mut.loc[i, "m2_construccion"]) else "-")
             p3.metric("$/m²", f"${df_mut.loc[i, 'precio_por_m2']:.0f}" if pd.notna(df_mut.loc[i, "precio_por_m2"]) else "-")
