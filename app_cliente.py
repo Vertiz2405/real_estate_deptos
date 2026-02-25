@@ -209,13 +209,30 @@ for i, tab in enumerate(tabs):
 
         with right:
             st.markdown("### Pros")
-            st.markdown(f'<div class="card">{safe_text(df_mut.loc[i, "pros"], "—") or "—"}</div>', unsafe_allow_html=True)
-
+            pros_val = safe_text(df_mut.loc[i, "pros"], "")
+            pros_new = st.text_area(
+                "Pros (editables)",
+                value=pros_val,
+                height=120,
+                key=f"pros_{row_id}",
+            )
             st.markdown("### Contras")
-            st.markdown(f'<div class="card">{safe_text(df_mut.loc[i, "contras"], "—") or "—"}</div>', unsafe_allow_html=True)
+            contras_val = safe_text(df_mut.loc[i, "contras"], "")
+            contras_new = st.text_area(
+                "Contras (editables)",
+                value=contras_val,
+                height=120,
+                key=f"contras_{row_id}",
+            )
 
             st.markdown("### Notas")
-            st.markdown(f'<div class="card">{safe_text(df_mut.loc[i, "notas"], "—") or "—"}</div>', unsafe_allow_html=True)
+            notas_val = safe_text(df_mut.loc[i, "notas"], "")
+            notas_new = st.text_area(
+                "Notas (editables)",
+                value=notas_val,
+                height=120,
+                key=f"notas_{row_id}",
+            )
 
         st.divider()
         st.markdown("### Decisión")
@@ -250,6 +267,9 @@ for i, tab in enumerate(tabs):
         idx = df_mut.index[df_mut["id"] == row_id]
         if len(idx) == 1:
             j = idx[0]
+            df_mut.loc[j, "pros"] = pros_new.strip() if pros_new.strip() else None
+            df_mut.loc[j, "contras"] = contras_new.strip() if contras_new.strip() else None
+            df_mut.loc[j, "notas"] = notas_new.strip() if notas_new.strip() else None
             df_mut.loc[j, "decision_status"] = new_status
             df_mut.loc[j, "decision_comentario"] = comment.strip() if comment else None
             df_mut.loc[j, "decision_quien"] = who.strip() if who else None
