@@ -51,6 +51,15 @@ h1 { letter-spacing: -0.02em; }
 </style>
 """, unsafe_allow_html=True)
 
+def fmt_mxn(x):
+    if pd.isna(x):
+        return "-"
+    x = float(x)
+    if x >= 1_000_000:
+        return f"${x/1_000_000:.2f}M"
+    if x >= 1_000:
+        return f"${x/1_000:.0f}K"
+    return f"${x:,.0f}"
 
 def is_http_url(s: str) -> bool:
     if not isinstance(s, str):
@@ -166,8 +175,8 @@ for i, tab in enumerate(tabs):
             else:
                 st.info("Sin fotos (o links no válidos).")
 
-            p1, p2, p3, p4 = st.columns(4)
-            p1.metric("Precio", f"${int(df_mut.loc[i, 'precio_mxn']):,}" if pd.notna(df_mut.loc[i, "precio_mxn"]) else "-")
+            p1, p2, p3, p4 = st.columns([1.6, 1, 1, 1])
+            p1.metric("Precio", fmt_mxn(df_mut.loc[i, "precio_mxn"]))
             p2.metric("m²", f"{df_mut.loc[i, 'm2_construccion']:.0f}" if pd.notna(df_mut.loc[i, "m2_construccion"]) else "-")
             p3.metric("$/m²", f"${df_mut.loc[i, 'precio_por_m2']:.0f}" if pd.notna(df_mut.loc[i, "precio_por_m2"]) else "-")
             p4.metric("Tipo", str(df_mut.loc[i, "tipo"] or "-"))
