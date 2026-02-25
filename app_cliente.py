@@ -52,6 +52,13 @@ h1 { letter-spacing: -0.02em; }
 """, unsafe_allow_html=True)
 
 
+def safe_text(x, default=""):
+    # evita "nan" en UI
+    if x is None or pd.isna(x):
+        return default
+    s = str(x)
+    return "" if s.lower() == "nan" else s
+
 
 def is_http_url(s: str) -> bool:
     if not isinstance(s, str):
@@ -122,7 +129,7 @@ with c4:
 st.divider()
 
 # Tabs by nombre, but internally update by id
-names = [f"{int(df.loc[i,'id'])} · {str(df.loc[i,'nombre'] or 'Sin nombre')}" for i in range(len(df))]
+names = [f"{int(df.loc[i,'id'])} · {safe_text(df.loc[i,'nombre'], 'Sin nombre')}" for i in range(len(df))]
 tabs = st.tabs(names)
 
 # Keep a mutable copy in session
@@ -135,16 +142,17 @@ df_mut = st.session_state.df_client
 for i, tab in enumerate(tabs):
     with tab:
         row_id = int(df_mut.loc[i, "id"])
-        nombre = str(df_mut.loc[i, "nombre"] or f"Depto {row_id}")
+        nombre = safe_text(df_mut.loc[i, "nombre"], f"Depto {row_id}")
 
         left, right = st.columns([1.1, 1])
 
         with left:
             st.subheader(nombre)
-            status = str(df_mut.loc[i, "decision_status"] or "Pendiente")
+            status = safe_text(df_mut.loc[i, "decision_status"], "Pendiente")
             color = {"Apoya": "chip-ok", "Descarta": "chip-bad", "Visitar": "chip-warn", "Pendiente": "chip-muted"}.get(status, "chip-muted")
             st.markdown(f'<div class="chips"><span class="chip {color}">Estatus: {status}</span></div>', unsafe_allow_html=True)
-            st.write(df_mut.loc[i, "zona_colonia"] or "")
+
+            st.write(safe_text(df_mut.loc[i, "zona_colonia"], ""))
 
             fotos = parse_fotos(df_mut.loc[i, "fotos_urls"])
 
@@ -171,15 +179,15 @@ for i, tab in enumerate(tabs):
             p1.metric("Precio", f"${int(df_mut.loc[i, 'precio_mxn']):,}" if pd.notna(df_mut.loc[i, "precio_mxn"]) else "-")
             p2.metric("m²", f"{df_mut.loc[i, 'm2_construccion']:.0f}" if pd.notna(df_mut.loc[i, "m2_construccion"]) else "-")
             p3.metric("$/m²", f"${df_mut.loc[i, 'precio_por_m2']:.0f}" if pd.notna(df_mut.loc[i, "precio_por_m2"]) else "-")
-            p4.metric("Tipo", str(df_mut.loc[i, "tipo"] or "-"))
+            p4.metric("Tipo", safe_text(df_mut.loc[i, "tipo"], "-"))
 
             a1, a2, a3 = st.columns(3)
             a1.metric("Recámaras", int(df_mut.loc[i, "recamaras"]) if pd.notna(df_mut.loc[i, "recamaras"]) else 0)
             a2.metric("Baños", int(df_mut.loc[i, "banos"]) if pd.notna(df_mut.loc[i, "banos"]) else 0)
             a3.metric("Estac.", int(df_mut.loc[i, "estacionamientos"]) if pd.notna(df_mut.loc[i, "estacionamientos"]) else 0)
 
-            url = df_mut.loc[i, "url"]
-            if isinstance(url, str) and url.strip():
+            url = safe_text(df_mut.loc[i, "url"], "")
+            if url.strip():
                 st.link_button("Abrir publicación", url.strip())
 
             st.caption("Flags")
@@ -201,13 +209,13 @@ for i, tab in enumerate(tabs):
 
         with right:
             st.markdown("### Pros")
-            st.markdown(f'<div class="card">{(df_mut.loc[i, "pros"] or "—")}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="card">{safe_text(df_mut.loc[i, "pros"], "—") or "—"}</div>', unsafe_allow_html=True)
 
             st.markdown("### Contras")
-            st.markdown(f'<div class="card">{(df_mut.loc[i, "contras"] or "—")}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="card">{safe_text(df_mut.loc[i, "contras"], "—") or "—"}</div>', unsafe_allow_html=True)
 
             st.markdown("### Notas")
-            st.markdown(f'<div class="card">{(df_mut.loc[i, "notas"] or "—")}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="card">{safe_text(df_mut.loc[i, "notas"], "—") or "—"}</div>', unsafe_allow_html=True)
 
         st.divider()
         st.markdown("### Decisión")
@@ -215,7 +223,7 @@ for i, tab in enumerate(tabs):
         d1, d2, d3 = st.columns([1, 2, 1])
 
         with d1:
-            current = str(df_mut.loc[i, "decision_status"] or "Pendiente")
+            current = safe_text(df_mut.loc[i, "decision_status"], "Pendiente")
             if current not in DECISION_OPTIONS:
                 current = "Pendiente"
             new_status = st.selectbox(
@@ -228,14 +236,14 @@ for i, tab in enumerate(tabs):
         with d2:
             comment = st.text_input(
                 "Comentario",
-                value=str(df_mut.loc[i, "decision_comentario"] or ""),
+                value=safe_text(df_mut.loc[i, "decision_comentario"], ""),
                 key=f"comment_{row_id}",
             )
 
         with d3:
             who = st.text_input(
                 "Quién decide (opcional)",
-                value=str(df_mut.loc[i, "decision_quien"] or ""),
+                value=safe_text(df_mut.loc[i, "decision_quien"], ""),
                 key=f"who_{row_id}",
             )
 
